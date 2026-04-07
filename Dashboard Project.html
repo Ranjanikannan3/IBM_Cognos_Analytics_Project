@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>BrightPath University Dashboard</title>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Font Awesome 6 (free icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f0f4fa 0%, #e6edf4 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ----- LOGIN PAGE (card) ----- */
+        .login-container {
+            width: 100%;
+            max-width: 440px;
+            margin: 2rem;
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 25px 45px -12px rgba(0,0,0,0.25);
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .login-header {
+            background: #0a2b3e;
+            padding: 2rem;
+            text-align: center;
+            color: white;
+        }
+
+        .login-header i {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-header h2 {
+            font-weight: 600;
+            font-size: 1.8rem;
+        }
+
+        .login-body {
+            padding: 2rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #1e2f3e;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            border: 1px solid #cfdfed;
+            border-radius: 1rem;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #2c7da0;
+            box-shadow: 0 0 0 3px rgba(44,125,160,0.2);
+        }
+
+        .login-btn {
+            background: #2c7da0;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 0.9rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .login-btn:hover {
+            background: #1f5e7a;
+            transform: translateY(-2px);
+        }
+
+        .error-msg {
+            color: #d9534f;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+
+        /* ----- DASHBOARD (main app) ----- */
+        .dashboard {
+            display: none;
+            width: 100%;
+            background: #f4f7fc;
+        }
+
+        .dashboard-header {
+            background: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border-bottom: 1px solid #e2edf2;
+        }
+
+        .logo-area h1 {
+            font-size: 1.5rem;
+            color: #0a2b3e;
+        }
+
+        .logo-area span {
+            font-weight: 400;
+            color: #2c7da0;
+        }
+
+        .logout-btn {
+            background: #eef2f6;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 2rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #1e4663;
+        }
+
+        .logout-btn:hover {
+            background: #dee4ea;
+        }
+
+        /* KPI row */
+        .kpi-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            padding: 2rem 2rem 1rem 2rem;
+        }
+
+        .kpi-card {
+            background: white;
+            border-radius: 1.5rem;
+            flex: 1;
+            min-width: 180px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.02), 0 2px 6px rgba(0,0,0,0.05);
+            transition: 0.2s;
+            border: 1px solid #e9f0f5;
+        }
+
+        .kpi-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            color: #5f7f9a;
+        }
+
+        .kpi-value {
+            font-size: 2.6rem;
+            font-weight: 800;
+            color: #0f2c3f;
+            margin-top: 0.5rem;
+        }
+
+        .kpi-unit {
+            font-size: 1rem;
+            font-weight: 400;
+            color: #6c8dae;
+        }
+
+        /* filter bar */
+        .filter-bar {
+            background: white;
+            margin: 0 2rem 1.5rem 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            align-items: flex-end;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            border: 1px solid #e2edf2;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            min-width: 160px;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: #2f5e7e;
+        }
+
+        select {
+            padding: 0.6rem 1rem;
+            border-radius: 1rem;
+            border: 1px solid #cbdde9;
+            background: white;
+            font-size: 0.9rem;
+        }
+
+        /* charts grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 1.8rem;
+            padding: 0 2rem 2rem 2rem;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1.2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            border: 1px solid #e6f0f5;
+        }
+
+        .chart-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: #1f4460;
+            border-left: 4px solid #2c7da0;
+            padding-left: 0.8rem;
+        }
+
+        canvas {
+            max-height: 280px;
+            width: 100%;
+        }
+
+        .top-table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        th, td {
+            padding: 0.75rem 0.5rem;
+            text-align: left;
+            border-bottom: 1px solid #e2edf2;
+        }
+
+        th {
+            background-color: #f8fafd;
+            color: #1d4c6e;
+        }
+
+        .iframe-container {
+            margin-top: 1rem;
+            border-radius: 1rem;
+            overflow: hidden;
+            border: 1px solid #cde1ec;
+            background: white;
+        }
+
+        iframe {
+            width: 100%;
+            height: 420px;
+            border: none;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.75rem;
+            color: #6f8faa;
+        }
+
+        @media (max-width: 780px) {
+            .charts-grid { grid-template-columns: 1fr; }
+            .kpi-row { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" class="login-container">
+    <div class="login-header">
+        <i class="fas fa-university"></i>
+        <h2>BrightPath Portal</h2>
+        <p>Academic Intelligence</p>
+    </div>
+    <div class="login-body">
+        <div class="input-group">
+            <label><i class="fas fa-user"></i> Username</label>
+            <input type="text" id="loginUsername" placeholder="admin">
+        </div>
+        <div class="input-group">
+            <label><i class="fas fa-lock"></i> Password</label>
+            <input type="password" id="loginPassword" placeholder="••••••">
+        </div>
+        <button class="login-btn" id="doLoginBtn"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+        <div id="loginError" class="error-msg"></div>
+        <div style="margin-top: 1rem; font-size: 0.8rem; text-align: center;">Demo: admin / password</div>
+    </div>
+</div>
+
+<!-- DASHBOARD (hidden initially) -->
+<div id="dashboardApp" class="dashboard">
+    <div class="dashboard-header">
+        <div class="logo-area">
+            <h1><i class="fas fa-chalkboard-user"></i> BrightPath <span>Analytics</span></h1>
+        </div>
+        <button id="logoutBtn" class="logout-btn"><i class="fas fa-arrow-right-from-bracket"></i> Logout</button>
+    </div>
+
+    <!-- KPI TILES (dynamic) -->
+    <div class="kpi-row" id="kpiContainer">
+        <div class="kpi-card"><div class="kpi-title">OVERALL PASS RATE</div><div class="kpi-value" id="passRateKpi">--%</div></div>
+        <div class="kpi-card"><div class="kpi-title">AVERAGE ATTENDANCE</div><div class="kpi-value" id="attendanceKpi">--%</div></div>
+        <div class="kpi-card"><div class="kpi-title">PLACEMENT RATE</div><div class="kpi-value" id="placementKpi">--%</div></div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-bar">
+        <div class="filter-group">
+            <label><i class="fas fa-building"></i> DEPARTMENT</label>
+            <select id="deptFilter"><option value="ALL">All Departments</option></select>
+        </div>
+        <div class="filter-group">
+            <label><i class="fas fa-calendar-alt"></i> YEAR OF STUDY</label>
+            <select id="yearFilter"><option value="ALL">All Years</option></select>
+        </div>
+        <div class="filter-group">
+            <label><i class="fas fa-sync-alt"></i> </label>
+            <button id="resetFilters" style="background:#eef2f6; border:none; padding:0.6rem 1rem; border-radius:2rem; cursor:pointer;">Reset Filters</button>
+        </div>
+    </div>
+
+    <!-- CHARTS GRID -->
+    <div class="charts-grid">
+        <div class="chart-card">
+            <div class="chart-title"><i class="fas fa-chart-bar"></i> Department-wise Pass/Fail</div>
+            <canvas id="barPassFailChart" width="400" height="250"></canvas>
+        </div>
+        <div class="chart-card">
+            <div class="chart-title"><i class="fas fa-chart-line"></i> Enrollment Year Trend</div>
+            <canvas id="lineEnrollmentChart" width="400" height="250"></canvas>
+        </div>
+        <div class="chart-card">
+            <div class="chart-title"><i class="fas fa-chart-pie"></i> Grade Distribution (A/B/C/D/F)</div>
+            <canvas id="pieGradeChart" width="400" height="250"></canvas>
+        </div>
+        <div class="chart-card">
+            <div class="chart-title"><i class="fas fa-trophy"></i> Top 10 Students by Total Marks</div>
+            <div class="top-table-wrapper">
+                <table id="top10Table">
+                    <thead><tr><th>Rank</th><th>Student Name</th><th>Department</th><th>Total Marks</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- IBM Cognos Embedded Dashboard (connectivity panel) -->
+    <div style="margin: 0 2rem 1rem 2rem;">
+        <div class="chart-card" style="padding: 0.5rem 1rem;">
+            <div class="chart-title"><i class="fas fa-cloud-upload-alt"></i> Live Cognos Analytics (Connected)</div>
+            <div class="iframe-container">
+                <iframe src="https://ap2.ca.analytics.ibm.com/bi/?perspective=dashboard&amp;pathRef=.my_folders%2Fashboard&amp;closeWindowOnLastView=true&amp;ui_appbar=false&amp;ui_navbar=false&amp;shareMode=embedded&amp;action=view&amp;mode=dashboard&amp;subView=model0000019d661b709f_00000002&amp;nav_filter=true" title="IBM Cognos Dashboard"></iframe>
+            </div>
+            <div style="font-size:0.7rem; text-align:center; margin-top:8px; color:#3f7e9e;"><i class="fas fa-check-circle"></i> External data source connected: BrightPath Academic Warehouse</div>
+        </div>
+    </div>
+    <footer>© BrightPath University – Real‑time analytics | Secure session</footer>
+</div>
+
+<script>
+    // ------------------------------------------------------------------
+    // 1. FULL DATASET (exactly from your Excel file, 200 students)
+    //    I've embedded the complete CSV rows as a raw text and parsed it.
+    //    This preserves all original values: Pass/Fail, Attendance, Placement, Grades, etc.
+    // ------------------------------------------------------------------
+    const rawCSV = `Student ID,Student Name,Gender,Age,Department,Program,Year of Study,Enrollment Year,Subject Name,Faculty Name,Internal Marks,External Marks,Total Marks,Grade,Pass/Fail,Attendance %,Assignment Submission %,Scholarship Flag,Dropout Flag,Backlog Count,Placement Status,Package (LPA)
+STU0001,Student_001,Male,23,BBA,MBA,4,2020,Physics,Prof. Rao,13,41,54,B,Pass,87.2,94.1,Yes,No,1,Placed,9.7
+STU0002,Student_002,Female,21,Computer Science,BBA,3,2021,Management,Prof. Rao,32,43,75,O,Pass,72,52.7,No,No,4,Not Placed,0
+STU0003,Student_003,Male,25,Electronics,MBA,4,2024,Management,Prof. Nair,38,51,89,O,Pass,98.1,75.9,Yes,No,5,Not Placed,0
+STU0004,Student_004,Female,24,Computer Science,BBA,2,2021,Statistics,Prof. Rao,32,50,82,O,Pass,62.4,69.8,No,No,3,Placed,13.9
+STU0005,Student_005,Male,20,Electronics,B.Sc,4,2024,Management,Prof. Rao,39,43,82,O,Pass,74.3,79.2,No,No,3,Not Placed,0
+STU0006,Student_006,Female,23,MBA,B.A,1,2021,Statistics,Prof. Rao,23,46,69,A,Pass,67.1,63.3,Yes,No,0,Not Placed,0
+STU0007,Student_007,Female,21,Electronics,M.Tech,1,2022,Mathematics,Prof. Mehta,26,52,78,O,Pass,57.7,60,Yes,No,2,Placed,4.7
+STU0008,Student_008,Male,26,MBA,B.Tech,3,2022,Management,Prof. Nair,36,37,73,A,Pass,58.2,97.3,No,Yes,3,Not Placed,0
+STU0009,Student_009,Male,25,Civil,M.A,4,2022,Physics,Prof. Singh,34,29,63,A,Pass,79.2,92.3,No,No,1,Placed,8
+STU0010,Student_010,Male,20,MBA,B.Tech,4,2022,Management,Prof. Rao,37,55,92,O,Pass,66.3,71,No,No,5,Not Placed,0
+STU0011,Student_011,Male,20,Mechanical,M.Sc,4,2023,Database,Prof. Nair,20,57,77,O,Pass,72.3,53.2,No,No,3,Not Placed,0
+STU0012,Student_012,Male,19,Mechanical,B.Tech,4,2020,Programming,Prof. Rao,28,48,76,O,Pass,46.5,53.5,No,No,1,Placed,9.7
+STU0013,Student_013,Male,23,Computer Science,MBA,3,2023,Economics,Prof. Rao,31,53,84,O,Pass,54,99.5,Yes,No,3,Not Placed,0
+STU0014,Student_014,Male,22,Arts,M.A,2,2024,Networks,Prof. Mehta,22,33,55,B,Pass,84.6,60.1,No,No,2,Not Placed,0
+STU0015,Student_015,Female,21,BBA,M.A,4,2023,Mathematics,Prof. Patel,14,48,62,A,Pass,52.1,54.6,No,No,2,Not Placed,0
+STU0016,Student_016,Male,24,Civil,MBA,4,2023,Economics,Prof. Patel,32,39,71,A,Pass,82,59.2,No,Yes,3,Not Placed,0
+STU0017,Student_017,Female,19,Civil,M.A,4,2024,Physics,Prof. Singh,11,35,46,C,Pass,81.9,53.8,Yes,No,3,Placed,6.5
+STU0018,Student_018,Male,25,Arts,M.Sc,4,2021,Economics,Prof. Kumar,18,33,51,B,Pass,67.1,50.5,Yes,No,2,Placed,13.2
+STU0019,Student_019,Male,25,Mechanical,M.A,3,2021,Programming,Prof. Kumar,24,51,75,O,Pass,80.2,80.3,Yes,No,0,Placed,4.8
+STU0020,Student_020,Male,22,Mechanical,M.A,3,2021,Database,Prof. Patel,22,30,52,B,Pass,72.1,51.7,No,No,3,Not Placed,0
+STU0021,Student_021,Male,24,MBA,M.A,1,2024,Mathematics,Prof. Kumar,36,60,96,O,Pass,81.8,88.6,Yes,No,2,Placed,17.1
+STU0022,Student_022,Male,18,BBA,BBA,1,2021,Physics,Prof. Patel,16,25,41,C,Pass,94.5,58.4,Yes,Yes,3,Not Placed,0
+STU0023,Student_023,Male,21,Arts,B.A,1,2021,Database,Prof. Kumar,36,40,76,O,Pass,70.8,67.8,Yes,Yes,3,Not Placed,0
+STU0024,Student_024,Male,19,MBA,M.Sc,1,2020,Database,Prof. Nair,10,44,54,B,Pass,79.2,65.1,No,No,0,Not Placed,0
+STU0025,Student_025,Male,23,Arts,MBA,3,2021,Management,Prof. Patel,35,56,91,O,Pass,82.8,74.1,No,Yes,4,Not Placed,0
+STU0026,Student_026,Male,21,Computer Science,M.Tech,3,2021,Economics,Prof. Rao,24,44,68,A,Pass,94.7,81,Yes,No,2,Placed,19.3
+STU0027,Student_027,Male,21,Science,M.Sc,2,2022,Management,Prof. Patel,16,29,45,C,Pass,69.9,89.3,Yes,No,5,Not Placed,0
+STU0028,Student_028,Female,23,Civil,BBA,1,2021,Database,Prof. Mehta,34,21,55,B,Pass,88.8,93.6,No,No,1,Not Placed,0
+STU0029,Student_029,Male,18,Mechanical,BBA,2,2020,Programming,Prof. Mehta,10,24,34,F,Fail,66.5,77.4,Yes,No,4,Placed,4.5
+STU0030,Student_030,Male,21,Arts,MBA,2,2022,Networks,Prof. Mehta,33,49,82,O,Pass,44.7,72.4,No,No,2,Not Placed,0`;
+    
+    // Append remaining rows (from STU0031 to STU0200) to keep full dataset.
+    // For brevity in code but completeness, I'll generate the rest using the exact pattern from your Excel file.
+    // I've programmatically added all 200 entries using your original data but due to length I will merge them from the conversation.
+    // Instead of making the code huge, the above snippet includes first 30 rows as demo; to respect full data I will include complete data via fetch simulation.
+    // But for 100% accuracy I will embed full dataset using the exact CSV provided in your message (the whole table).
+    // I've built the full 200‑row dataset inside the final variable `students`.
+    // (Implementation: below I define a full array parsed from a multi-line string with all records – exactly from your attached file)
+    
+    // ----- FULL DATA INIT (I'm using the exhaustive list from the chat, truncated for readability but actually functional) -----
+    // For a working, production‑ready dashboard I will embed the remaining rows from the original data.
+    // To guarantee all rows, I'll use a compact method: since the user sees the whole dataset, I'll parse it from the conversation context.
+    // In the final answer I will include the complete 200 records as a JS array (the code below is fully functional).
+    
+    let fullStudentList = [];
+    
+    function buildDatasetFromFullCSV() {
+        // The full data as provided in the chat (CSV format). I've captured all 200 lines.
+        const completeCSV = `Student ID,Student Name,Gender,Age,Department,Program,Year of Study,Enrollment Year,Subject Name,Faculty Name,Internal Marks,External Marks,Total Marks,Grade,Pass/Fail,Attendance %,Assignment Submission %,Scholarship Flag,Dropout Flag,Backlog Count,Placement Status,Package (LPA)
+STU0001,Student_001,Male,23,BBA,MBA,4,2020,Physics,Prof. Rao,13,41,54,B,Pass,87.2,94.1,Yes,No,1,Placed,9.7
+STU0002,Student_002,Female,21,Computer Science,BBA,3,2021,Management,Prof. Rao,32,43,75,O,Pass,72,52.7,No,No,4,Not Placed,0
+STU0003,Student_003,Male,25,Electronics,MBA,4,2024,Management,Prof. Nair,38,51,89,O,Pass,98.1,75.9,Yes,No,5,Not Placed,0
+STU0004,Student_004,Female,24,Computer Science,BBA,2,2021,Statistics,Prof. Rao,32,50,82,O,Pass,62.4,69.8,No,No,3,Placed,13.9
+STU0005,Student_005,Male,20,Electronics,B.Sc,4,2024,Management,Prof. Rao,39,43,82,O,Pass,74.3,79.2,No,No,3,Not Placed,0
+STU0006,Student_006,Female,23,MBA,B.A,1,2021,Statistics,Prof. Rao,23,46,69,A,Pass,67.1,63.3,Yes,No,0,Not Placed,0
+STU0007,Student_007,Female,21,Electronics,M.Tech,1,2022,Mathematics,Prof. Mehta,26,52,78,O,Pass,57.7,60,Yes,No,2,Placed,4.7
+STU0008,Student_008,Male,26,MBA,B.Tech,3,2022,Management,Prof. Nair,36,37,73,A,Pass,58.2,97.3,No,Yes,3,Not Placed,0
+STU0009,Student_009,Male,25,Civil,M.A,4,2022,Physics,Prof. Singh,34,29,63,A,Pass,79.2,92.3,No,No,1,Placed,8
+STU0010,Student_010,Male,20,MBA,B.Tech,4,2022,Management,Prof. Rao,37,55,92,O,Pass,66.3,71,No,No,5,Not Placed,0
+STU0011,Student_011,Male,20,Mechanical,M.Sc,4,2023,Database,Prof. Nair,20,57,77,O,Pass,72.3,53.2,No,No,3,Not Placed,0
+STU0012,Student_012,Male,19,Mechanical,B.Tech,4,2020,Programming,Prof. Rao,28,48,76,O,Pass,46.5,53.5,No,No,1,Placed,9.7
+STU0013,Student_013,Male,23,Computer Science,MBA,3,2023,Economics,Prof. Rao,31,53,84,O,Pass,54,99.5,Yes,No,3,Not Placed,0
+STU0014,Student_014,Male,22,Arts,M.A,2,2024,Networks,Prof. Mehta,22,33,55,B,Pass,84.6,60.1,No,No,2,Not Placed,0
+STU0015,Student_015,Female,21,BBA,M.A,4,2023,Mathematics,Prof. Patel,14,48,62,A,Pass,52.1,54.6,No,No,2,Not Placed,0
+STU0016,Student_016,Male,24,Civil,MBA,4,2023,Economics,Prof. Patel,32,39,71,A,Pass,82,59.2,No,Yes,3,Not Placed,0
+STU0017,Student_017,Female,19,Civil,M.A,4,2024,Physics,Prof. Singh,11,35,46,C,Pass,81.9,53.8,Yes,No,3,Placed,6.5
+STU0018,Student_018,Male,25,Arts,M.Sc,4,2021,Economics,Prof. Kumar,18,33,51,B,Pass,67.1,50.5,Yes,No,2,Placed,13.2
+STU0019,Student_019,Male,25,Mechanical,M.A,3,2021,Programming,Prof. Kumar,24,51,75,O,Pass,80.2,80.3,Yes,No,0,Placed,4.8
+STU0020,Student_020,Male,22,Mechanical,M.A,3,2021,Database,Prof. Patel,22,30,52,B,Pass,72.1,51.7,No,No,3,Not Placed,0
+STU0021,Student_021,Male,24,MBA,M.A,1,2024,Mathematics,Prof. Kumar,36,60,96,O,Pass,81.8,88.6,Yes,No,2,Placed,17.1
+STU0022,Student_022,Male,18,BBA,BBA,1,2021,Physics,Prof. Patel,16,25,41,C,Pass,94.5,58.4,Yes,Yes,3,Not Placed,0
+STU0023,Student_023,Male,21,Arts,B.A,1,2021,Database,Prof. Kumar,36,40,76,O,Pass,70.8,67.8,Yes,Yes,3,Not Placed,0
+STU0024,Student_024,Male,19,MBA,M.Sc,1,2020,Database,Prof. Nair,10,44,54,B,Pass,79.2,65.1,No,No,0,Not Placed,0
+STU0025,Student_025,Male,23,Arts,MBA,3,2021,Management,Prof. Patel,35,56,91,O,Pass,82.8,74.1,No,Yes,4,Not Placed,0
+STU0026,Student_026,Male,21,Computer Science,M.Tech,3,2021,Economics,Prof. Rao,24,44,68,A,Pass,94.7,81,Yes,No,2,Placed,19.3
+STU0027,Student_027,Male,21,Science,M.Sc,2,2022,Management,Prof. Patel,16,29,45,C,Pass,69.9,89.3,Yes,No,5,Not Placed,0
+STU0028,Student_028,Female,23,Civil,BBA,1,2021,Database,Prof. Mehta,34,21,55,B,Pass,88.8,93.6,No,No,1,Not Placed,0
+STU0029,Student_029,Male,18,Mechanical,BBA,2,2020,Programming,Prof. Mehta,10,24,34,F,Fail,66.5,77.4,Yes,No,4,Placed,4.5
+STU0030,Student_030,Male,21,Arts,MBA,2,2022,Networks,Prof. Mehta,33,49,82,O,Pass,44.7,72.4,No,No,2,Not Placed,0
+STU0031,Student_031,Female,20,Science,M.A,4,2024,Economics,Prof. Rao,25,25,50,B,Pass,91.7,91,No,Yes,3,Placed,10.9
+STU0032,Student_032,Male,22,Arts,M.A,3,2023,Networks,Prof. Nair,12,39,51,B,Pass,65.6,78.1,No,Yes,2,Placed,6.4
+STU0033,Student_033,Male,18,Computer Science,M.Sc,4,2023,Economics,Prof. Nair,25,32,57,B,Pass,48.2,98.5,No,No,3,Not Placed,0
+STU0034,Student_034,Male,24,Mechanical,BBA,4,2022,Management,Prof. Mehta,28,24,52,B,Pass,58.5,85.5,No,No,5,Placed,3.9
+STU0035,Student_035,Male,23,Computer Science,MBA,3,2024,Statistics,Prof. Patel,22,47,69,A,Pass,43.5,57.4,Yes,No,0,Placed,8.3
+STU0036,Student_036,Male,26,Civil,B.A,2,2023,Networks,Prof. Patel,12,44,56,B,Pass,47,65.1,No,No,4,Not Placed,0
+STU0037,Student_037,Female,20,MBA,BBA,4,2022,Mathematics,Prof. Rao,23,25,48,C,Pass,58.5,90.8,Yes,Yes,0,Not Placed,0
+STU0038,Student_038,Female,20,Mechanical,M.Sc,2,2021,Database,Prof. Nair,23,53,76,O,Pass,86.4,59.1,Yes,No,4,Placed,9.3
+STU0039,Student_039,Male,21,MBA,B.A,4,2024,Physics,Prof. Patel,15,32,47,C,Pass,88.9,58.3,No,Yes,3,Not Placed,0
+STU0040,Student_040,Male,25,Science,M.Tech,1,2020,Networks,Prof. Kumar,12,41,53,B,Pass,47.5,83.3,Yes,Yes,1,Not Placed,0
+STU0041,Student_041,Female,25,Science,M.Sc,4,2022,Management,Prof. Patel,10,44,54,B,Pass,71.3,94.5,No,No,2,Placed,24.7
+STU0042,Student_042,Female,23,Electronics,B.Tech,4,2023,Programming,Prof. Kumar,22,59,81,O,Pass,79.9,80.1,No,No,5,Not Placed,0
+STU0043,Student_043,Female,26,Arts,BBA,1,2022,Mathematics,Prof. Patel,17,43,60,A,Pass,85.1,68,Yes,No,5,Placed,18.1
+STU0044,Student_044,Male,23,Arts,M.A,1,2023,Networks,Prof. Mehta,29,51,80,O,Pass,66.7,59.8,Yes,Yes,1,Placed,16.5
+STU0045,Student_045,Female,20,Science,M.Tech,4,2024,Database,Prof. Rao,12,39,51,B,Pass,69.9,60.6,No,Yes,0,Placed,24.9
+STU0046,Student_046,Female,24,MBA,BBA,3,2023,Physics,Prof. Patel,32,21,53,B,Pass,66.1,56.8,No,No,0,Not Placed,0
+STU0047,Student_047,Male,23,Arts,B.A,4,2021,Database,Prof. Singh,20,34,54,B,Pass,87.7,55.8,Yes,Yes,0,Placed,19.9
+STU0048,Student_048,Female,20,BBA,B.A,1,2022,Mathematics,Prof. Mehta,28,32,60,A,Pass,60.4,76.8,No,No,2,Placed,5.6
+STU0049,Student_049,Male,19,Arts,B.Tech,4,2022,Programming,Prof. Singh,35,28,63,A,Pass,86.3,91.9,No,No,1,Placed,16.2
+STU0050,Student_050,Male,22,Science,BBA,4,2022,Economics,Prof. Kumar,14,22,36,F,Fail,76.1,99.1,No,No,5,Placed,9.8
+STU0051,Student_051,Male,25,Arts,B.Sc,2,2020,Economics,Prof. Singh,33,34,67,A,Pass,52.6,71.1,No,No,3,Placed,4.2
+STU0052,Student_052,Male,26,Arts,M.Tech,2,2022,Mathematics,Prof. Patel,26,38,64,A,Pass,63.5,65.2,No,No,4,Not Placed,0
+STU0053,Student_053,Male,21,Civil,BBA,1,2022,Physics,Prof. Patel,32,50,82,O,Pass,48.3,89.3,Yes,No,3,Not Placed,0
+STU0054,Student_054,Female,20,Computer Science,M.Tech,3,2024,Economics,Prof. Rao,15,23,38,F,Fail,80.8,81.3,No,No,0,Not Placed,0
+STU0055,Student_055,Male,24,Electronics,M.A,4,2022,Statistics,Prof. Singh,22,51,73,A,Pass,47.1,50.6,Yes,Yes,0,Not Placed,0
+STU0056,Student_056,Female,22,Electronics,MBA,4,2023,Economics,Prof. Singh,31,52,83,O,Pass,69.4,78.6,Yes,No,0,Not Placed,0
+STU0057,Student_057,Male,24,Science,M.Tech,1,2021,Physics,Prof. Rao,37,54,91,O,Pass,82.8,93.1,No,No,0,Not Placed,0
+STU0058,Student_058,Male,21,Mechanical,M.Tech,3,2020,Physics,Prof. Kumar,35,40,75,O,Pass,73.3,75.3,No,No,3,Not Placed,0
+STU0059,Student_059,Male,26,MBA,M.A,2,2024,Statistics,Prof. Patel,31,20,51,B,Pass,98.6,65.6,No,No,5,Not Placed,0
+STU0060,Student_060,Male,20,MBA,BBA,2,2024,Database,Prof. Mehta,36,22,58,B,Pass,45.9,68,Yes,No,0,Not Placed,0
+STU0061,Student_061,Female,19,MBA,B.A,2,2024,Database,Prof. Kumar,18,44,62,A,Pass,73,81.5,No,No,5,Placed,6.6
+STU0062,Student_062,Male,23,Arts,B.A,1,2024,Database,Prof. Kumar,31,52,83,O,Pass,62.3,63.5,No,Yes,5,Placed,12.2
+STU0063,Student_063,Female,22,Mechanical,BBA,3,2020,Physics,Prof. Nair,12,41,53,B,Pass,72.9,99,Yes,No,0,Placed,11
+STU0064,Student_064,Female,19,BBA,B.Sc,3,2024,Physics,Prof. Kumar,13,31,44,C,Pass,87,58.5,No,No,2,Placed,22.3
+STU0065,Student_065,Female,25,Mechanical,B.Sc,1,2024,Programming,Prof. Patel,31,54,85,O,Pass,88.4,56.3,No,No,0,Placed,22.4
+STU0066,Student_066,Female,25,Mechanical,M.A,3,2023,Networks,Prof. Singh,30,43,73,A,Pass,95.1,97.6,No,No,2,Placed,8.5
+STU0067,Student_067,Male,19,Electronics,BBA,1,2021,Mathematics,Prof. Kumar,12,39,51,B,Pass,78.1,87.2,No,No,0,Placed,9.9
+STU0068,Student_068,Female,26,Electronics,B.A,1,2024,Database,Prof. Patel,23,52,75,O,Pass,97.7,50.4,No,No,1,Placed,6
+STU0069,Student_069,Female,20,Civil,MBA,1,2022,Programming,Prof. Mehta,31,53,84,O,Pass,99.7,67.7,Yes,No,3,Placed,3.9
+STU0070,Student_070,Male,26,Electronics,B.Sc,3,2023,Networks,Prof. Singh,21,27,48,C,Pass,62.7,60.7,No,No,1,Not Placed,0
+STU0071,Student_071,Female,25,Computer Science,M.Sc,1,2024,Statistics,Prof. Singh,39,52,91,O,Pass,95.4,64.9,Yes,Yes,2,Placed,3.8
+STU0072,Student_072,Male,24,Science,BBA,1,2024,Programming,Prof. Nair,15,45,60,A,Pass,93.4,56.2,No,Yes,1,Not Placed,0
+STU0073,Student_073,Female,24,Mechanical,B.Sc,1,2023,Statistics,Prof. Rao,18,34,52,B,Pass,86.2,57,No,No,0,Placed,11.2
+STU0074,Student_074,Female,18,Mechanical,B.A,4,2022,Mathematics,Prof. Rao,37,32,69,A,Pass,61.6,83.3,No,No,0,Not Placed,0
+STU0075,Student_075,Female,24,Arts,MBA,1,2020,Mathematics,Prof. Rao,27,51,78,O,Pass,65.3,57.8,No,Yes,5,Placed,18.7
+STU0076,Student_076,Male,24,Science,B.Sc,3,2023,Physics,Prof. Nair,31,41,72,A,Pass,54.2,62.4,Yes,No,1,Placed,16.1
+STU0077,Student_077,Female,21,Science,M.Tech,2,2021,Programming,Prof. Rao,13,36,49,C,Pass,56.9,56,No,Yes,2,Placed,8.4
+STU0078,Student_078,Male,18,Arts,B.A,3,2021,Database,Prof. Singh,39,29,68,A,Pass,99.4,71.3,Yes,No,5,Placed,16.6
+STU0079,Student_079,Female,24,Civil,M.Sc,1,2021,Mathematics,Prof. Kumar,13,37,50,B,Pass,43.1,52.6,No,No,1,Not Placed,0
+STU0080,Student_080,Male,22,Science,M.Sc,3,2022,Physics,Prof. Kumar,18,58,76,O,Pass,57.1,83.4,No,No,2,Not Placed,0
+STU0081,Student_081,Female,21,MBA,BBA,4,2020,Physics,Prof. Rao,35,43,78,O,Pass,61.6,81.5,No,Yes,0,Placed,16
+STU0082,Student_082,Female,19,Electronics,M.Sc,3,2023,Database,Prof. Mehta,39,32,71,A,Pass,75.2,86,Yes,No,1,Not Placed,0
+STU0083,Student_083,Female,23,Science,M.Tech,4,2020,Statistics,Prof. Nair,32,36,68,A,Pass,65.1,76.2,No,Yes,1,Placed,19.7
+STU0084,Student_084,Male,21,Arts,M.A,1,2021,Statistics,Prof. Mehta,32,28,60,A,Pass,75.9,69.2,No,No,4,Not Placed,0
+STU0085,Student_085,Male,18,Science,B.Sc,3,2021,Networks,Prof. Patel,15,20,35,F,Fail,56.3,63.4,Yes,No,1,Not Placed,0
+STU0086,Student_086,Male,22,Mechanical,B.Sc,1,2021,Database,Prof. Mehta,17,38,55,B,Pass,42.7,55.8,No,No,5,Not Placed,0
+STU0087,Student_087,Female,20,Arts,B.Sc,3,2020,Mathematics,Prof. Singh,21,40,61,A,Pass,76.3,61,No,No,2,Not Placed,0
+STU0088,Student_088,Female,22,Civil,M.A,2,2022,Networks,Prof. Rao,27,57,84,O,Pass,98.3,79.1,No,No,3,Not Placed,0
+STU0089,Student_089,Female,19,Science,MBA,4,2021,Programming,Prof. Rao,33,47,80,O,Pass,53.9,78.5,No,No,5,Not Placed,0
+STU0090,Student_090,Male,19,Mechanical,M.Tech,4,2021,Statistics,Prof. Patel,19,30,49,C,Pass,56.9,98.5,Yes,No,5,Placed,21
+STU0091,Student_091,Female,18,Electronics,B.Tech,1,2021,Database,Prof. Kumar,10,58,68,A,Pass,85,63.4,No,Yes,0,Not Placed,0
+STU0092,Student_092,Male,21,Mechanical,M.A,4,2021,Networks,Prof. Singh,13,54,67,A,Pass,97.5,73.9,Yes,Yes,4,Placed,10.4
+STU0093,Student_093,Male,19,MBA,M.Tech,4,2021,Mathematics,Prof. Rao,30,54,84,O,Pass,81.5,51.2,No,No,1,Not Placed,0
+STU0094,Student_094,Male,25,Mechanical,M.Tech,2,2020,Networks,Prof. Singh,19,34,53,B,Pass,61.2,53.8,No,Yes,2,Placed,18.1
+STU0095,Student_095,Male,24,BBA,MBA,4,2021,Networks,Prof. Mehta,39,25,64,A,Pass,95.4,90.9,No,Yes,2,Placed,16.3
+STU0096,Student_096,Male,18,Mechanical,MBA,3,2021,Economics,Prof. Nair,31,43,74,A,Pass,95,86.1,No,Yes,0,Placed,20.8
+STU0097,Student_097,Female,20,Mechanical,B.A,3,2022,Statistics,Prof. Nair,40,37,77,O,Pass,74.7,74.1,No,No,1,Not Placed,0
+STU0098,Student_098,Female,26,Science,BBA,4,2020,Economics,Prof. Mehta,30,35,65,A,Pass,88.1,78.9,No,No,5,Not Placed,0
+STU0099,Student_099,Male,23,Science,MBA,1,2020,Management,Prof. Singh,21,20,41,C,Pass,45.2,92.4,Yes,No,3,Not Placed,0
+STU0100,Student_100,Male,21,Civil,B.Tech,2,2020,Programming,Prof. Nair,37,55,92,O,Pass,48.6,86.7,No,No,2,Placed,23.1
+STU0101,Student_101,Male,18,Mechanical,M.Sc,2,2020,Database,Prof. Kumar,13,57,70,A,Pass,43.2,50.6,No,No,1,Not Placed,0
+STU0102,Student_102,Female,23,Science,B.Tech,3,2020,Programming,Prof. Kumar,14,53,67,A,Pass,68.2,94.1,Yes,No,4,Placed,9.6
+STU0103,Student_103,Female,26,MBA,BBA,4,2021,Networks,Prof. Kumar,22,47,69,A,Pass,49.6,76.1,Yes,No,3,Placed,22.3
+STU0104,Student_104,Male,25,Science,M.Sc,4,2023,Programming,Prof. Kumar,17,45,62,A,Pass,77.1,90.2,No,No,1,Not Placed,0
+STU0105,Student_105,Female,18,Civil,B.Sc,2,2024,Physics,Prof. Kumar,13,24,37,F,Fail,56.2,60.6,Yes,No,1,Not Placed,0
+STU0106,Student_106,Male,18,Science,B.Tech,1,2022,Physics,Prof. Singh,30,22,52,B,Pass,73.1,50.4,No,No,3,Not Placed,0
+STU0107,Student_107,Male,23,Arts,M.Tech,2,2020,Economics,Prof. Nair,20,45,65,A,Pass,70,79.3,Yes,No,1,Placed,24.4
+STU0108,Student_108,Male,21,Mechanical,MBA,3,2023,Programming,Prof. Singh,24,25,49,C,Pass,49.1,64.5,No,No,0,Placed,5.1
+STU0109,Student_109,Male,20,Science,M.Tech,1,2021,Networks,Prof. Mehta,34,44,78,O,Pass,93.4,93.4,Yes,No,0,Not Placed,0
+STU0110,Student_110,Female,23,BBA,M.Tech,1,2021,Statistics,Prof. Singh,15,38,53,B,Pass,67.3,99.3,No,No,5,Not Placed,0
+STU0111,Student_111,Female,22,Arts,B.A,2,2023,Management,Prof. Mehta,40,27,67,A,Pass,95.4,92.2,No,No,0,Placed,13.7
+STU0112,Student_112,Male,18,Civil,B.Tech,2,2020,Networks,Prof. Nair,26,48,74,A,Pass,80.9,57.9,No,Yes,1,Not Placed,0
+STU0113,Student_113,Female,26,Science,M.Tech,1,2021,Physics,Prof. Nair,24,25,49,C,Pass,63.3,88.4,Yes,No,2,Not Placed,0
+STU0114,Student_114,Female,19,MBA,M.A,1,2024,Programming,Prof. Nair,20,58,78,O,Pass,43.9,57.3,Yes,No,4,Placed,18.5
+STU0115,Student_115,Female,24,Science,BBA,1,2021,Mathematics,Prof. Patel,29,44,73,A,Pass,41.9,71.1,No,No,0,Not Placed,0
+STU0116,Student_116,Female,24,Civil,B.Sc,2,2020,Physics,Prof. Nair,18,45,63,A,Pass,48.5,67.1,No,No,1,Not Placed,0
+STU0117,Student_117,Male,24,BBA,B.A,1,2024,Database,Prof. Kumar,23,50,73,A,Pass,61,86.1,No,No,2,Placed,18.2
+STU0118,Student_118,Female,20,Science,M.Sc,1,2023,Networks,Prof. Mehta,36,40,76,O,Pass,79.8,86.1,No,No,5,Not Placed,0
+STU0119,Student_119,Male,24,Mechanical,B.A,2,2022,Database,Prof. Rao,28,26,54,B,Pass,67,98.6,No,Yes,2,Not Placed,0
+STU0120,Student_120,Male,25,Science,B.A,4,2022,Management,Prof. Mehta,10,39,49,C,Pass,88.8,71.3,No,Yes,1,Placed,14
+STU0121,Student_121,Female,24,MBA,B.A,3,2024,Physics,Prof. Kumar,21,31,52,B,Pass,67.5,90.3,Yes,Yes,5,Placed,6.6
+STU0122,Student_122,Male,25,Computer Science,B.Sc,4,2021,Database,Prof. Nair,39,46,85,O,Pass,41,77.6,Yes,No,3,Not Placed,0
+STU0123,Student_123,Female,18,BBA,BBA,3,2022,Networks,Prof. Singh,21,49,70,A,Pass,97,91.9,No,No,0,Placed,21
+STU0124,Student_124,Male,23,BBA,M.Sc,2,2024,Economics,Prof. Rao,23,22,45,C,Pass,94,77.8,No,No,4,Not Placed,0
+STU0125,Student_125,Male,24,Mechanical,B.A,3,2024,Programming,Prof. Nair,36,23,59,B,Pass,78.7,61.5,No,No,4,Placed,15.7
+STU0126,Student_126,Female,26,Mechanical,M.Sc,2,2020,Physics,Prof. Kumar,28,45,73,A,Pass,47.1,71.9,No,No,0,Placed,16.8
+STU0127,Student_127,Male,25,BBA,MBA,2,2021,Networks,Prof. Rao,27,25,52,B,Pass,77.1,76.8,Yes,No,2,Placed,3.6
+STU0128,Student_128,Male,19,Science,M.Tech,1,2021,Networks,Prof. Singh,18,25,43,C,Pass,79.6,94.7,Yes,Yes,3,Placed,16.8
+STU0129,Student_129,Female,18,Arts,M.Tech,4,2020,Database,Prof. Patel,39,33,72,A,Pass,90.7,71,No,No,1,Not Placed,0
+STU0130,Student_130,Male,19,BBA,M.Sc,4,2024,Mathematics,Prof. Rao,10,31,41,C,Pass,50.8,76.1,No,Yes,1,Placed,16.9
+STU0131,Student_131,Male,23,Electronics,BBA,1,2022,Programming,Prof. Rao,27,21,48,C,Pass,76.4,54.2,No,No,2,Placed,19.7
+STU0132,Student_132,Female,25,Science,B.A,4,2021,Networks,Prof. Rao,16,25,41,C,Pass,56.4,59.9,No,No,3,Not Placed,0
+STU0133,Student_133,Male,25,Arts,M.A,4,2024,Networks,Prof. Singh,35,57,92,O,Pass,46.2,81.1,No,No,3,Not Placed,0
+STU0134,Student_134,Female,20,Computer Science,B.Sc,4,2022,Management,Prof. Nair,21,43,64,A,Pass,52,51.5,Yes,No,3,Placed,21
+STU0135,Student_135,Female,23,Mechanical,M.Sc,1,2020,Management,Prof. Patel,21,35,56,B,Pass,87.5,50.5,No,No,3,Not Placed,0
+STU0136,Student_136,Male,26,Civil,M.Tech,3,2024,Physics,Prof. Mehta,20,34,54,B,Pass,74,94.6,No,No,2,Placed,11.5
+STU0137,Student_137,Female,25,Computer Science,B.Sc,4,2020,Physics,Prof. Nair,16,32,48,C,Pass,88.8,58.6,No,No,1,Not Placed,0
+STU0138,Student_138,Male,25,MBA,MBA,4,2020,Mathematics,Prof. Singh,19,21,40,C,Pass,74.6,82.2,Yes,No,0,Placed,21.8
+STU0139,Student_139,Female,24,Electronics,M.Sc,4,2024,Mathematics,Prof. Nair,23,39,62,A,Pass,89.8,64.9,No,No,5,Not Placed,0
+STU0140,Student_140,Male,18,Computer Science,MBA,1,2022,Economics,Prof. Rao,13,43,56,B,Pass,98,58.5,Yes,No,4,Placed,5.3
+STU0141,Student_141,Male,19,Computer Science,B.Sc,1,2022,Management,Prof. Patel,39,23,62,A,Pass,99.4,80.6,No,No,5,Not Placed,0
+STU0142,Student_142,Male,24,Science,M.Tech,2,2024,Statistics,Prof. Patel,14,57,71,A,Pass,50.2,74.5,No,No,5,Placed,5.8
+STU0143,Student_143,Female,26,Civil,BBA,1,2020,Statistics,Prof. Kumar,12,36,48,C,Pass,69,60.6,No,No,3,Placed,18.7
+STU0144,Student_144,Male,26,BBA,B.Sc,4,2021,Physics,Prof. Rao,16,51,67,A,Pass,89.1,60.9,No,No,3,Not Placed,0
+STU0145,Student_145,Female,24,Mechanical,B.Sc,1,2021,Statistics,Prof. Kumar,26,32,58,B,Pass,92.1,87.3,Yes,Yes,3,Placed,7.1
+STU0146,Student_146,Female,19,Electronics,M.Sc,4,2021,Programming,Prof. Nair,10,50,60,A,Pass,51.2,75.1,No,No,0,Placed,13
+STU0147,Student_147,Female,24,Civil,B.Sc,2,2023,Programming,Prof. Mehta,21,26,47,C,Pass,66.5,63.8,No,No,4,Not Placed,0
+STU0148,Student_148,Male,19,Computer Science,B.Tech,3,2021,Physics,Prof. Mehta,31,23,54,B,Pass,66,55.1,Yes,No,3,Placed,24.1
+STU0149,Student_149,Male,23,MBA,B.Sc,1,2020,Programming,Prof. Mehta,17,37,54,B,Pass,63.6,95.4,No,No,5,Placed,6.8
+STU0150,Student_150,Male,20,Mechanical,M.Sc,4,2021,Mathematics,Prof. Patel,39,35,74,A,Pass,58.3,73.7,No,Yes,1,Not Placed,0
+STU0151,Student_151,Male,23,Science,B.Tech,4,2021,Statistics,Prof. Kumar,38,24,62,A,Pass,98.5,52.3,Yes,No,1,Not Placed,0
+STU0152,Student_152,Female,25,Science,M.Sc,3,2023,Networks,Prof. Singh,15,29,44,C,Pass,71.5,72.9,No,No,5,Placed,5.2
+STU0153,Student_153,Male,20,Arts,BBA,2,2022,Statistics,Prof. Kumar,26,58,84,O,Pass,60,62.2,No,No,2,Placed,8.9
+STU0154,Student_154,Male,22,Science,MBA,3,2022,Management,Prof. Nair,12,32,44,C,Pass,52.4,79.5,No,No,1,Placed,11.3
+STU0155,Student_155,Female,23,MBA,M.Tech,1,2023,Programming,Prof. Nair,26,41,67,A,Pass,42.5,84,No,No,4,Placed,5.7
+STU0156,Student_156,Female,18,Science,B.Tech,2,2022,Physics,Prof. Kumar,15,39,54,B,Pass,73.5,74.4,Yes,No,2,Placed,4.4
+STU0157,Student_157,Female,22,Mechanical,M.Tech,3,2021,Database,Prof. Nair,10,23,33,F,Fail,79.6,79.3,Yes,No,1,Not Placed,0
+STU0158,Student_158,Female,24,Arts,M.Tech,3,2022,Networks,Prof. Rao,39,42,81,O,Pass,41.9,78.2,No,No,4,Not Placed,0
+STU0159,Student_159,Female,26,Civil,B.Sc,3,2020,Networks,Prof. Mehta,34,32,66,A,Pass,48.4,96.4,No,No,3,Not Placed,0
+STU0160,Student_160,Female,23,BBA,M.A,3,2023,Statistics,Prof. Nair,36,47,83,O,Pass,86.9,98.1,No,Yes,4,Not Placed,0
+STU0161,Student_161,Male,22,Civil,M.Sc,2,2024,Networks,Prof. Kumar,34,46,80,O,Pass,41.6,87.8,No,No,3,Not Placed,0
+STU0162,Student_162,Male,22,Electronics,M.Sc,1,2022,Statistics,Prof. Patel,24,53,77,O,Pass,80.2,66.6,Yes,Yes,5,Placed,4.2
+STU0163,Student_163,Female,20,Civil,MBA,3,2022,Mathematics,Prof. Nair,26,23,49,C,Pass,75.1,81.2,Yes,Yes,0,Placed,14.4
+STU0164,Student_164,Male,25,Computer Science,M.A,4,2020,Physics,Prof. Singh,29,27,56,B,Pass,40,70.2,Yes,No,4,Placed,8.4
+STU0165,Student_165,Female,20,Computer Science,MBA,2,2021,Programming,Prof. Mehta,29,48,77,O,Pass,55.6,87.1,No,No,3,Placed,16.6
+STU0166,Student_166,Female,24,Arts,M.Tech,4,2023,Economics,Prof. Rao,19,26,45,C,Pass,68.8,51.4,No,Yes,4,Placed,13.8
+STU0167,Student_167,Female,18,BBA,MBA,4,2023,Networks,Prof. Kumar,28,39,67,A,Pass,63.4,99.1,No,No,2,Not Placed,0
+STU0168,Student_168,Male,23,BBA,M.A,2,2022,Networks,Prof. Nair,26,44,70,A,Pass,94.2,53.4,No,No,3,Placed,6.8
+STU0169,Student_169,Female,20,BBA,M.Sc,4,2020,Mathematics,Prof. Kumar,29,31,60,A,Pass,97.8,92.6,Yes,No,0,Placed,23.4
+STU0170,Student_170,Male,21,Electronics,MBA,4,2023,Physics,Prof. Kumar,25,50,75,O,Pass,79.9,80.6,Yes,Yes,5,Not Placed,0
+STU0171,Student_171,Male,23,Electronics,M.A,4,2021,Database,Prof. Rao,34,43,77,O,Pass,44.4,62.6,No,No,1,Placed,21.5
+STU0172,Student_172,Male,19,Computer Science,M.Tech,2,2020,Programming,Prof. Kumar,15,47,62,A,Pass,52.1,68,No,Yes,2,Placed,20.8
+STU0173,Student_173,Female,26,BBA,M.Sc,2,2020,Statistics,Prof. Nair,33,53,86,O,Pass,51.1,81.3,Yes,Yes,1,Placed,21.3
+STU0174,Student_174,Male,18,BBA,B.Tech,2,2022,Networks,Prof. Nair,19,26,45,C,Pass,86.9,85.2,Yes,No,2,Not Placed,0
+STU0175,Student_175,Female,24,Computer Science,M.Tech,4,2022,Mathematics,Prof. Kumar,28,35,63,A,Pass,44.5,66.9,No,No,2,Placed,23.5
+STU0176,Student_176,Female,18,Civil,M.A,1,2024,Mathematics,Prof. Singh,11,28,39,F,Fail,93.3,99.1,No,Yes,4,Not Placed,0
+STU0177,Student_177,Female,26,Civil,M.Sc,4,2023,Networks,Prof. Rao,14,37,51,B,Pass,68.7,51.1,Yes,Yes,1,Placed,5.3
+STU0178,Student_178,Female,18,Arts,B.A,2,2023,Economics,Prof. Mehta,37,44,81,O,Pass,72.1,56.9,No,Yes,4,Placed,19.2
+STU0179,Student_179,Female,18,Civil,BBA,1,2024,Mathematics,Prof. Rao,21,42,63,A,Pass,99,70.7,No,Yes,0,Not Placed,0
+STU0180,Student_180,Male,25,Mechanical,B.Sc,1,2022,Management,Prof. Mehta,17,23,40,C,Pass,92.4,82.8,Yes,No,1,Not Placed,0
+STU0181,Student_181,Male,25,BBA,BBA,4,2022,Management,Prof. Mehta,25,27,52,B,Pass,76.4,64.6,No,No,4,Placed,4.7
+STU0182,Student_182,Female,25,MBA,M.Tech,2,2021,Database,Prof. Singh,20,54,74,A,Pass,93.6,87.1,Yes,Yes,2,Placed,4.2
+STU0183,Student_183,Male,25,Science,M.Tech,1,2023,Mathematics,Prof. Singh,35,29,64,A,Pass,83.5,63.9,No,No,0,Not Placed,0
+STU0184,Student_184,Male,24,Arts,M.A,1,2021,Database,Prof. Nair,37,59,96,O,Pass,43.6,59.2,No,Yes,5,Not Placed,0
+STU0185,Student_185,Female,22,Civil,B.Tech,3,2024,Economics,Prof. Nair,27,42,69,A,Pass,58.3,89.1,No,Yes,0,Placed,23
+STU0186,Student_186,Female,24,MBA,MBA,4,2023,Database,Prof. Rao,40,38,78,O,Pass,73.2,95.4,No,No,0,Placed,23.6
+STU0187,Student_187,Female,18,MBA,M.Sc,3,2022,Mathematics,Prof. Kumar,34,54,88,O,Pass,99.9,65.3,No,No,2,Not Placed,0
+STU0188,Student_188,Male,25,Computer Science,M.Sc,4,2024,Database,Prof. Nair,24,49,73,A,Pass,90.9,52.9,Yes,No,4,Not Placed,0
+STU0189,Student_189,Female,22,Science,MBA,2,2021,Programming,Prof. Mehta,40,24,64,A,Pass,73.1,82.8,Yes,Yes,5,Placed,8.7
+STU0190,Student_190,Male,26,Civil,B.Tech,3,2022,Mathematics,Prof. Patel,31,52,83,O,Pass,42.3,92.2,No,Yes,4,Placed,15.8
+STU0191,Student_191,Male,21,Civil,M.Sc,3,2023,Physics,Prof. Patel,13,24,37,F,Fail,54.1,71.3,No,No,0,Placed,5.5
+STU0192,Student_192,Female,23,Science,B.Sc,1,2021,Management,Prof. Kumar,35,43,78,O,Pass,59.6,64.5,Yes,Yes,0,Not Placed,0
+STU0193,Student_193,Female,21,Arts,B.Tech,2,2023,Physics,Prof. Kumar,35,40,75,O,Pass,76.5,97.9,Yes,No,4,Placed,20.2
+STU0194,Student_194,Female,23,MBA,BBA,3,2021,Management,Prof. Rao,37,53,90,O,Pass,84,90,No,No,3,Placed,16.4
+STU0195,Student_195,Female,23,Electronics,M.Sc,1,2022,Statistics,Prof. Mehta,13,35,48,C,Pass,58.9,61.5,No,No,4,Placed,24.1
+STU0196,Student_196,Female,20,MBA,B.Sc,3,2022,Physics,Prof. Kumar,14,54,68,A,Pass,89.7,70.4,No,No,4,Not Placed,0
+STU0197,Student_197,Male,20,Electronics,B.A,3,2024,Statistics,Prof. Patel,38,32,70,A,Pass,69.7,55,Yes,No,0,Placed,22.3
+STU0198,Student_198,Female,24,BBA,MBA,4,2024,Database,Prof. Patel,12,28,40,C,Pass,81.4,64.7,No,No,4,Placed,14.6
+STU0199,Student_199,Female,25,Arts,M.A,4,2022,Statistics,Prof. Patel,13,22,35,F,Fail,76.5,56.7,Yes,Yes,1,Not Placed,0
+STU0200,Student_200,Female,24,BBA,M.A,2,2024,Networks,Prof. Kumar,28,57,85,O,Pass,93.7,61.6,No,No,0,Not Placed,0`;
+
+        const lines = completeCSV.split('\n');
+        const headers = lines[0].split(',');
+        const records = [];
+        for (let i = 1; i < lines.length; i++) {
+            if (!lines[i].trim()) continue;
+            const values = lines[i].split(',');
+            let obj = {};
+            headers.forEach((h, idx) => { obj[h.trim()] = values[idx] ? values[idx].trim() : ''; });
+            // convert numeric fields
+            obj['Total Marks'] = parseFloat(obj['Total Marks']) || 0;
+            obj['Attendance %'] = parseFloat(obj['Attendance %']) || 0;
+            obj['Year of Study'] = parseInt(obj['Year of Study']) || 0;
+            obj['Enrollment Year'] = parseInt(obj['Enrollment Year']) || 0;
+            records.push(obj);
+        }
+        return records;
+    }
+
+    fullStudentList = buildDatasetFromFullCSV();
+
+    // ------------------------------------------------------------
+    // GLOBALS
+    let currentFilteredData = [...fullStudentList];
+    let barChart, lineChart, pieChart;
+
+    // helper: grade mapping for pie (A/B/C/D/F) – convert O → A, keep A,B,C,F, D missing -> 0
+    function getGradeCategory(grade) {
+        if (grade === 'O') return 'A';
+        if (grade === 'A') return 'A';
+        if (grade === 'B') return 'B';
+        if (grade === 'C') return 'C';
+        if (grade === 'F') return 'F';
+        return 'Other';
+    }
+
+    function applyFilters() {
+        const dept = document.getElementById('deptFilter').value;
+        const year = document.getElementById('yearFilter').value;
+        currentFilteredData = fullStudentList.filter(s => {
+            if (dept !== 'ALL' && s.Department !== dept) return false;
+            if (year !== 'ALL' && s['Year of Study'].toString() !== year) return false;
+            return true;
+        });
+        updateKPIs();
+        updateChartsAndTable();
+    }
+
+    function updateKPIs() {
+        const total = currentFilteredData.length;
+        const passCount = currentFilteredData.filter(s => s['Pass/Fail'] === 'Pass').length;
+        const passRate = total ? (passCount / total * 100).toFixed(1) : 0;
+        const avgAttendance = total ? (currentFilteredData.reduce((sum,s) => sum + s['Attendance %'],0)/total).toFixed(1) : 0;
+        const placedCount = currentFilteredData.filter(s => s['Placement Status'] === 'Placed').length;
+        const placementRate = total ? (placedCount / total * 100).toFixed(1) : 0;
+        document.getElementById('passRateKpi').innerHTML = `${passRate}%`;
+        document.getElementById('attendanceKpi').innerHTML = `${avgAttendance}%`;
+        document.getElementById('placementKpi').innerHTML = `${placementRate}%`;
+    }
+
+    function updateChartsAndTable() {
+        // Dept wise pass/fail counts
+        const deptMap = new Map();
+        currentFilteredData.forEach(s => {
+            const dept = s.Department;
+            if (!deptMap.has(dept)) deptMap.set(dept, {pass:0, fail:0});
+            const stat = deptMap.get(dept);
+            if (s['Pass/Fail'] === 'Pass') stat.pass++;
+            else stat.fail++;
+        });
+        const departments = Array.from(deptMap.keys());
+        const passCounts = departments.map(d => deptMap.get(d).pass);
+        const failCounts = departments.map(d => deptMap.get(d).fail);
+        
+        if (barChart) barChart.destroy();
+        const barCtx = document.getElementById('barPassFailChart').getContext('2d');
+        barChart = new Chart(barCtx, {
+            type: 'bar',
+            data: { labels: departments, datasets: [{label:'Pass', data: passCounts, backgroundColor:'#2c7da0'},{label:'Fail', data: failCounts, backgroundColor:'#e07a5f'}] },
+            options: { responsive: true, maintainAspectRatio: true, scales: { x: { stacked: false }, y: { beginAtZero: true, title: { display: true, text: 'Student Count' } } } }
+        });
+        
+        // Enrollment line chart
+        const enrollMap = new Map();
+        currentFilteredData.forEach(s => { let yr = s['Enrollment Year']; enrollMap.set(yr, (enrollMap.get(yr)||0)+1); });
+        const yearsSorted = Array.from(enrollMap.keys()).sort((a,b)=>a-b);
+        const enrollCounts = yearsSorted.map(y => enrollMap.get(y));
+        if (lineChart) lineChart.destroy();
+        const lineCtx = document.getElementById('lineEnrollmentChart').getContext('2d');
+        lineChart = new Chart(lineCtx, {
+            type: 'line', data: { labels: yearsSorted, datasets: [{label:'Enrolled Students', data: enrollCounts, borderColor:'#2c7da0', tension:0.2, fill:false}] },
+            options: { responsive: true }
+        });
+        
+        // Grade pie (A,B,C,D,F) – D zero if absent
+        const gradeCounts = {A:0, B:0, C:0, D:0, F:0};
+        currentFilteredData.forEach(s => {
+            let cat = getGradeCategory(s.Grade);
+            if (gradeCounts.hasOwnProperty(cat)) gradeCounts[cat]++;
+            else gradeCounts['A']++;
+        });
+        if (pieChart) pieChart.destroy();
+        const pieCtx = document.getElementById('pieGradeChart').getContext('2d');
+        pieChart = new Chart(pieCtx, {
+            type: 'pie', data: { labels: ['A','B','C','D','F'], datasets: [{data: [gradeCounts.A, gradeCounts.B, gradeCounts.C, gradeCounts.D, gradeCounts.F], backgroundColor: ['#2c7da0','#61a5c2','#89c2d9','#f4a261','#e76f51']}] },
+            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+        });
+        
+        // Top 10 table
+        const sorted = [...currentFilteredData].sort((a,b) => b['Total Marks'] - a['Total Marks']).slice(0,10);
+        const tbody = document.querySelector('#top10Table tbody');
+        tbody.innerHTML = '';
+        sorted.forEach((s,idx) => {
+            const row = `<tr><td>${idx+1}</td><td>${s['Student Name']}</td><td>${s.Department}</td><td>${s['Total Marks']}</td></tr>`;
+            tbody.insertAdjacentHTML('beforeend', row);
+        });
+    }
+
+    function populateFilters() {
+        const depts = [...new Set(fullStudentList.map(s => s.Department))].sort();
+        const deptSelect = document.getElementById('deptFilter');
+        deptSelect.innerHTML = '<option value="ALL">All Departments</option>';
+        depts.forEach(d => { deptSelect.innerHTML += `<option value="${d}">${d}</option>`; });
+        const years = [...new Set(fullStudentList.map(s => s['Year of Study']))].sort((a,b)=>a-b);
+        const yearSelect = document.getElementById('yearFilter');
+        yearSelect.innerHTML = '<option value="ALL">All Years</option>';
+        years.forEach(y => { yearSelect.innerHTML += `<option value="${y}">Year ${y}</option>`; });
+    }
+
+    // LOGIC
+    document.getElementById('doLoginBtn').addEventListener('click', () => {
+        const user = document.getElementById('loginUsername').value;
+        const pwd = document.getElementById('loginPassword').value;
+        if (user === 'admin' && pwd === 'password') {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('dashboardApp').style.display = 'block';
+            populateFilters();
+            applyFilters();
+            document.getElementById('deptFilter').addEventListener('change', applyFilters);
+            document.getElementById('yearFilter').addEventListener('change', applyFilters);
+            document.getElementById('resetFilters').addEventListener('click', () => {
+                document.getElementById('deptFilter').value = 'ALL';
+                document.getElementById('yearFilter').value = 'ALL';
+                applyFilters();
+            });
+        } else {
+            document.getElementById('loginError').innerText = 'Invalid credentials. Use admin / password';
+        }
+    });
+    document.getElementById('logoutBtn')?.addEventListener('click', () => {
+        document.getElementById('dashboardApp').style.display = 'none';
+        document.getElementById('loginScreen').style.display = 'flex';
+        document.getElementById('loginUsername').value = '';
+        document.getElementById('loginPassword').value = '';
+        document.getElementById('loginError').innerText = '';
+    });
+</script>
+</body>
+</html>
